@@ -1,0 +1,124 @@
+graph TB
+    %% 用户入口层
+    User[用户] --> GUI[gui_chess_scanner.py<br/>GUI主界面]
+    User --> CLI1[chinese_chess_scanner.py<br/>基础命令行]
+    User --> CLI2[advanced_chess_scanner.py<br/>高级命令行]
+    User --> TEST[test_region_selection.py<br/>区域测试工具]
+    User --> INSTALL[install_requirements.py<br/>安装脚本]
+
+    %% GUI核心模块
+    GUI --> RegionSelect[region_selector.py<br/>区域选择器]
+    GUI --> Scanner[AdvancedChessScanner<br/>高级扫描器]
+    GUI --> AI[chess_ai_assistant.py<br/>AI助手]
+    
+    %% 区域选择功能
+    RegionSelect --> PyAutoGUI[PyAutoGUI<br/>屏幕截图]
+    RegionSelect --> CV2[OpenCV<br/>图像处理]
+    RegionSelect --> Config[scan_regions.json<br/>区域配置文件]
+    
+    %% 扫描器层次
+    CLI1 --> BasicScanner[ChineseChessScanner<br/>基础扫描器]
+    CLI2 --> Scanner
+    Scanner --> BasicScanner
+    
+    %% 基础扫描功能
+    BasicScanner --> PyAutoGUI
+    BasicScanner --> CV2
+    BasicScanner --> OCR[Pytesseract<br/>OCR识别]
+    BasicScanner --> Templates[chess_templates/<br/>棋子模板]
+    
+    %% 高级扫描功能
+    Scanner --> ColorDetection[颜色检测<br/>HSV颜色空间]
+    Scanner --> TemplateMatch[模板匹配<br/>特征识别]
+    Scanner --> BoardDetection[棋盘检测<br/>边缘与轮廓]
+    
+    %% AI助手核心
+    AI --> MoveDetector[move_detector.py<br/>走法检测器]
+    AI --> Evaluator[position_evaluator.py<br/>局面评估器]
+    AI --> BoardState[棋盘状态管理]
+    
+    %% 走法检测模块
+    MoveDetector --> ChessRules[象棋规则引擎]
+    MoveDetector --> StateCompare[状态对比算法]
+    MoveDetector --> MoveValidation[走法验证]
+    
+    %% 局面评估模块
+    Evaluator --> MaterialValue[子力价值计算]
+    Evaluator --> PositionValue[位置价值评估]
+    Evaluator --> KingSafety[将帅安全分析]
+    Evaluator --> WinRate[胜率计算<br/>Sigmoid函数]
+    
+    %% AI分析流程
+    BoardState --> GameAnalysis[局面分析结果]
+    GameAnalysis --> Recommendations[走法推荐]
+    GameAnalysis --> Threats[威胁检测]
+    GameAnalysis --> Opportunities[机会识别]
+    
+    %% 测试模块
+    TEST --> RegionSelect
+    TEST --> Scanner
+    TEST --> MultiBoard[多棋盘管理]
+    
+    %% 外部依赖
+    PyAutoGUI --> Screen[屏幕截图API]
+    CV2 --> ImageProcess[图像处理库]
+    OCR --> Tesseract[Tesseract引擎]
+    
+    %% 数据流向
+    Scanner -.-> |棋盘状态| AI
+    AI -.-> |分析结果| GUI
+    RegionSelect -.-> |选择区域| Scanner
+    Config -.-> |区域配置| RegionSelect
+    
+    %% 样式定义
+    classDef userEntry fill:#e1f5fe,stroke:#0277bd,stroke-width:2px
+    classDef coreModule fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    classDef aiModule fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
+    classDef scanModule fill:#fff3e0,stroke:#ef6c00,stroke-width:2px
+    classDef externalLib fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+    classDef dataFile fill:#f1f8e9,stroke:#558b2f,stroke-width:2px
+    
+    %% 应用样式
+    class User,GUI,CLI1,CLI2,TEST,INSTALL userEntry
+    class AI,MoveDetector,Evaluator,GameAnalysis coreModule
+    class Scanner,BasicScanner,RegionSelect scanModule
+    class PyAutoGUI,CV2,OCR,Tesseract externalLib
+    class Config,Templates dataFile
+
+    %% 子图分组
+    subgraph "用户界面层"
+        direction TB
+        GUI
+        CLI1
+        CLI2
+        TEST
+    end
+    
+    subgraph "核心功能层"
+        direction TB
+        Scanner
+        AI
+        RegionSelect
+    end
+    
+    subgraph "AI分析引擎"
+        direction TB
+        MoveDetector
+        Evaluator
+        ChessRules
+        WinRate
+    end
+    
+    subgraph "计算机视觉"
+        direction TB
+        CV2
+        OCR
+        TemplateMatch
+        ColorDetection
+    end
+    
+    subgraph "数据存储"
+        direction TB
+        Config
+        Templates
+    end
