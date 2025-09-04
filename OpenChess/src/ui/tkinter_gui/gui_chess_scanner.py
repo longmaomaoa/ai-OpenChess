@@ -38,9 +38,9 @@ class ChessScannerGUI:
     
     def __init__(self, root):
         self.root = root
-        self.root.title("🏯 中国象棋智能对弈助手 v3.2 Enhanced - 1920x1080优化版 🏯")
-        self.root.geometry("1920x1080")   # 优化为1920x1080分辨率
-        self.root.minsize(1920, 1080)     # 设置最小尺寸以适应1920x1080布局
+        self.root.title("🏯 中国象棋智能对弈助手 v3.2 Enhanced - 四列布局版 🏯")
+        self.root.geometry("1875x850")    # 调整窗口尺寸以适应四列布局（650+300+425+450+边距，750+标题+边距）
+        self.root.minsize(1875, 850)      # 设置最小尺寸以适应四列布局
         
         # 现代化中国风主题色彩 - 1920x1080优化版
         self.colors = {
@@ -252,27 +252,28 @@ class ChessScannerGUI:
         # 现代化标题区域
         self.create_header(main_container)
         
-        # 主要内容区域 - 三列水平布局 (Left-Center-Right)
+        # 主要内容区域 - 四列水平布局 (棋盘-控制-AI分析-日志)
         content_frame = tk.Frame(main_container, bg=self.colors['bg_primary'])
         content_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
         
-        # 配置网格权重 - 1920x1080优化
-        content_frame.columnconfigure(0, weight=0)  # 左侧固定宽度 (棋盘)
-        content_frame.columnconfigure(1, weight=0)  # 中间固定宽度 (控制)
-        content_frame.columnconfigure(2, weight=1)  # 右侧可扩展 (AI分析)
+        # 配置网格权重 - 四列布局
+        content_frame.columnconfigure(0, weight=0)  # 左侧固定宽度 (棋盘: 650)
+        content_frame.columnconfigure(1, weight=0)  # 中间固定宽度 (控制: 300)
+        content_frame.columnconfigure(2, weight=0)  # AI分析面板 (固定宽度: 425，原850的一半)
+        content_frame.columnconfigure(3, weight=0)  # 右侧日志面板 (固定宽度: 450)
         content_frame.rowconfigure(0, weight=1)
         
-        # 左侧：棋盘面板 (550x550棋盘画布)
+        # 左侧：棋盘面板 (650x750)
         self.create_chess_board_panel(content_frame)
         
-        # 中间：控制面板 (320宽度)
+        # 中间：控制面板 (300x750)
         self.create_control_center_panel(content_frame)
         
-        # 右侧：AI分析面板 (可扩展)
+        # 第三列：AI分析面板 (425x750，宽度减半)
         self.create_right_panel(content_frame)
         
-        # 底部状态日志面板 - 恢复并优化
-        self.create_status_log_panel(main_container)
+        # 右侧：状态日志面板 (450x750，从底部移到右侧)
+        self.create_status_log_panel(content_frame)
     
     def create_header(self, parent):
         """创建现代化标题区域"""
@@ -328,10 +329,10 @@ class ChessScannerGUI:
         self.ai_status_label.pack(side=tk.LEFT)
     
     def create_chess_board_panel(self, parent):
-        """创建棋盘面板 - 1920x1080优化，550x550棋盘画布"""
-        # 左侧棋盘面板 - 调整尺寸适配550x550棋盘
+        """创建棋盘面板 - 按要求调整为650x750尺寸"""
+        # 左侧棋盘面板 - 按用户要求调整为650x750
         chess_board_frame = tk.Frame(parent, bg=self.colors['bg_primary'], 
-                                    width=650, height=700)
+                                    width=650, height=750)
         chess_board_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S), padx=(0, 15))
         chess_board_frame.pack_propagate(False)
         chess_board_frame.grid_propagate(False)
@@ -373,51 +374,74 @@ class ChessScannerGUI:
         self.update_modern_board_display()
     
     def create_control_center_panel(self, parent):
-        """创建控制面板 - 1920x1080优化，320x700尺寸，垂直布局"""
-        # 中间控制面板 - 调整尺寸
+        """创建控制面板 - 按要求调整为300x750尺寸"""
+        # 中间控制面板 - 按用户要求调整为300x750
         control_center_frame = tk.Frame(parent, bg=self.colors['bg_primary'], 
-                                       width=320, height=700)
+                                       width=300, height=750)
         control_center_frame.grid(row=0, column=1, sticky=(tk.W, tk.E, tk.N, tk.S), padx=(0, 15))
         control_center_frame.pack_propagate(False)
         control_center_frame.grid_propagate(False)
         
         # 控制面板标题卡片
         control_card = ttk.LabelFrame(control_center_frame, text="🎛️ 控制面板", style='Control.TLabelframe')
-        control_card.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        control_card.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
         
-        # 按钮容器 - 垂直排列
-        buttons_container = tk.Frame(control_card, bg=self.colors['accent_light'])
-        buttons_container.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        # 创建滚动容器来处理内容过多的问题
+        canvas_frame = tk.Frame(control_card, bg=self.colors['accent_light'])
+        canvas_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        
+        canvas = tk.Canvas(canvas_frame, bg=self.colors['accent_light'], highlightthickness=0)
+        scrollbar = ttk.Scrollbar(canvas_frame, orient="vertical", command=canvas.yview)
+        scrollable_frame = tk.Frame(canvas, bg=self.colors['accent_light'])
+        
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        )
+        
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+        
+        # 添加鼠标滚轮支持
+        def on_mousewheel(event):
+            canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+        canvas.bind("<MouseWheel>", on_mousewheel)
+        
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+        
+        # 按钮容器 - 垂直排列（现在在可滚动框架内）
+        buttons_container = scrollable_frame
         
         # 基础功能组
         basic_group = tk.LabelFrame(buttons_container, text="基础功能", 
                                    bg=self.colors['accent_light'], 
                                    fg=self.colors['accent_dark'],
                                    font=self.fonts['normal'])
-        basic_group.pack(fill='x', pady=(0, 15))
+        basic_group.pack(fill='x', pady=(0, 8))
         
         ttk.Button(basic_group, text="校准棋盘", command=self.calibrate_board, 
-                  style='Primary.TButton').pack(fill='x', padx=10, pady=5)
+                  style='Primary.TButton').pack(fill='x', padx=5, pady=2)
         ttk.Button(basic_group, text="单次扫描", command=self.single_scan, 
-                  style='Secondary.TButton').pack(fill='x', padx=10, pady=5)
+                  style='Secondary.TButton').pack(fill='x', padx=5, pady=2)
         ttk.Button(basic_group, text="创建模板", command=self.create_template, 
-                  style='Secondary.TButton').pack(fill='x', padx=10, pady=5)
+                  style='Secondary.TButton').pack(fill='x', padx=5, pady=2)
         
         # 区域功能组
         region_group = tk.LabelFrame(buttons_container, text="区域选择", 
                                     bg=self.colors['accent_light'], 
                                     fg=self.colors['accent_dark'],
                                     font=self.fonts['normal'])
-        region_group.pack(fill='x', pady=(0, 15))
+        region_group.pack(fill='x', pady=(0, 8))
         
         ttk.Button(region_group, text="选择区域", command=self.select_scan_region, 
-                  style='Primary.TButton').pack(fill='x', padx=10, pady=5)
+                  style='Primary.TButton').pack(fill='x', padx=5, pady=2)
         ttk.Button(region_group, text="管理区域", command=self.manage_regions, 
-                  style='Secondary.TButton').pack(fill='x', padx=10, pady=5)
+                  style='Secondary.TButton').pack(fill='x', padx=5, pady=2)
         
         # 当前区域显示
         region_info_frame = tk.Frame(region_group, bg=self.colors['accent_light'])
-        region_info_frame.pack(fill='x', padx=10, pady=5)
+        region_info_frame.pack(fill='x', padx=5, pady=2)
         
         tk.Label(region_info_frame, text="当前区域:", 
                 bg=self.colors['accent_light'], 
@@ -433,42 +457,42 @@ class ChessScannerGUI:
                                 bg=self.colors['accent_light'], 
                                 fg=self.colors['accent_dark'],
                                 font=self.fonts['normal'])
-        ai_group.pack(fill='x', pady=(0, 15))
+        ai_group.pack(fill='x', pady=(0, 8))
         
         ttk.Button(ai_group, text="启动 AI 助手", command=self.start_ai_monitoring, 
-                  style='Success.TButton').pack(fill='x', padx=10, pady=5)
+                  style='Success.TButton').pack(fill='x', padx=5, pady=2)
         ttk.Button(ai_group, text="停止监控", command=self.stop_ai_monitoring, 
-                  style='Danger.TButton').pack(fill='x', padx=10, pady=5)
+                  style='Danger.TButton').pack(fill='x', padx=5, pady=2)
         ttk.Button(ai_group, text="获取推荐", command=self.get_ai_recommendation, 
-                  style='Success.TButton').pack(fill='x', padx=10, pady=5)
+                  style='Success.TButton').pack(fill='x', padx=5, pady=2)
         
         # AI分析功能组
         ai_analysis_group = tk.LabelFrame(buttons_container, text="AI 分析", 
                                          bg=self.colors['accent_light'], 
                                          fg=self.colors['accent_dark'],
                                          font=self.fonts['normal'])
-        ai_analysis_group.pack(fill='x', pady=(0, 15))
+        ai_analysis_group.pack(fill='x', pady=(0, 8))
         
         ttk.Button(ai_analysis_group, text="高亮推荐", command=self.highlight_recommendations, 
-                  style='Success.TButton').pack(fill='x', padx=10, pady=3)
+                  style='Success.TButton').pack(fill='x', padx=5, pady=1)
         ttk.Button(ai_analysis_group, text="清除高亮", command=self.clear_highlights, 
-                  style='Secondary.TButton').pack(fill='x', padx=10, pady=3)
+                  style='Secondary.TButton').pack(fill='x', padx=5, pady=1)
         ttk.Button(ai_analysis_group, text="威胁分析", command=self.show_threats, 
-                  style='Danger.TButton').pack(fill='x', padx=10, pady=3)
+                  style='Danger.TButton').pack(fill='x', padx=5, pady=1)
         ttk.Button(ai_analysis_group, text="机会分析", command=self.show_opportunities, 
-                  style='Success.TButton').pack(fill='x', padx=10, pady=3)
+                  style='Success.TButton').pack(fill='x', padx=5, pady=1)
         
         # 系统功能组
         system_group = tk.LabelFrame(buttons_container, text="系统功能", 
                                    bg=self.colors['accent_light'], 
                                    fg=self.colors['accent_dark'],
                                    font=self.fonts['normal'])
-        system_group.pack(fill='x', pady=(0, 15))
+        system_group.pack(fill='x', pady=(0, 8))
         
         ttk.Button(system_group, text="刷新面板", command=self.refresh_all_panels, 
-                  style='Secondary.TButton').pack(fill='x', padx=10, pady=3)
+                  style='Secondary.TButton').pack(fill='x', padx=5, pady=1)
         ttk.Button(system_group, text="高级模式", command=self.toggle_advanced_mode, 
-                  style='Primary.TButton').pack(fill='x', padx=10, pady=3)
+                  style='Primary.TButton').pack(fill='x', padx=5, pady=1)
     
     def create_left_panel(self, parent):
         """创建左侧面板（控制和棋盘）- 1920x1080优化"""
@@ -557,12 +581,14 @@ class ChessScannerGUI:
         self.create_modern_board_display(board_card)
     
     def create_right_panel(self, parent):
-        """创建右侧AI分析面板"""
-        right_panel = tk.Frame(parent, bg=self.colors['bg_primary'])
-        right_panel.grid(row=0, column=2, sticky=(tk.W, tk.E, tk.N, tk.S), padx=(0, 0))
-        right_panel.rowconfigure(0, weight=0)  # 胜率卡片固定高度
-        right_panel.rowconfigure(1, weight=1)  # 推荐走法卡片可扩展
-        right_panel.rowconfigure(2, weight=1)  # 局面分析卡片可扩展
+        """创建AI分析面板 - 宽度减半为425x750尺寸"""
+        right_panel = tk.Frame(parent, bg=self.colors['bg_primary'], width=425, height=750)
+        right_panel.grid(row=0, column=2, sticky=(tk.W, tk.E, tk.N, tk.S), padx=(0, 15))
+        right_panel.pack_propagate(False)
+        right_panel.grid_propagate(False)
+        right_panel.rowconfigure(0, weight=0, minsize=180)  # 胜率卡片固定高度180px
+        right_panel.rowconfigure(1, weight=1, minsize=280)  # 推荐走法卡片最小280px
+        right_panel.rowconfigure(2, weight=1, minsize=280)  # 局面分析卡片最小280px
         right_panel.columnconfigure(0, weight=1)
         
         # 胜率显示卡片
@@ -577,11 +603,11 @@ class ChessScannerGUI:
     def create_win_rate_card(self, parent):
         """创建胜率显示卡片 - 1920x1080优化"""
         win_rate_card = ttk.LabelFrame(parent, text="🎯 AI 胜率分析", style='Card.TLabelframe')
-        win_rate_card.grid(row=0, column=0, sticky=(tk.W, tk.E), pady=(0, 15))
+        win_rate_card.grid(row=0, column=0, sticky=(tk.W, tk.E), pady=(0, 5))
         
-        # 主胜率显示区域 - 增大和优化
+        # 主胜率显示区域 - 紧凑布局
         rate_display_frame = tk.Frame(win_rate_card, bg='white')
-        rate_display_frame.pack(fill='x', pady=(5, 15))
+        rate_display_frame.pack(fill='x', pady=(5, 5))
         
         # 大号胜率数字
         self.win_rate_label = tk.Label(rate_display_frame, text="---%", 
@@ -599,7 +625,7 @@ class ChessScannerGUI:
         
         # 增强的胜率进度条
         progress_frame = tk.Frame(win_rate_card, bg='white')
-        progress_frame.pack(fill='x', pady=(0, 10))
+        progress_frame.pack(fill='x', pady=(0, 5))
         
         self.win_rate_progress = ttk.Progressbar(progress_frame, 
                                                style='WinRate.Horizontal.TProgressbar',
@@ -625,13 +651,13 @@ class ChessScannerGUI:
     def create_recommendations_card(self, parent):
         """创建推荐走法卡片 - 1920x1080优化"""
         rec_card = ttk.LabelFrame(parent, text="🚀 AI 推荐走法", style='Card.TLabelframe')
-        rec_card.grid(row=1, column=0, sticky=(tk.W, tk.E, tk.N, tk.S), pady=(0, 15))
+        rec_card.grid(row=1, column=0, sticky=(tk.W, tk.E, tk.N, tk.S), pady=(0, 5))
         rec_card.columnconfigure(0, weight=1)
         rec_card.rowconfigure(1, weight=1)
         
         # 推荐控制按钮区域
         control_frame = tk.Frame(rec_card, bg='white')
-        control_frame.grid(row=0, column=0, sticky=(tk.W, tk.E), pady=(5, 10))
+        control_frame.grid(row=0, column=0, sticky=(tk.W, tk.E), pady=(5, 5))
         
         ttk.Button(control_frame, text="高亮显示", 
                   command=self.highlight_recommendations,
@@ -649,10 +675,10 @@ class ChessScannerGUI:
         text_frame.columnconfigure(0, weight=1)
         text_frame.rowconfigure(0, weight=1)
         
-        self.recommendation_text = tk.Text(text_frame, height=12, width=40,
+        self.recommendation_text = tk.Text(text_frame, height=10, width=30,
                                          bg='#fafafa', fg=self.colors['text_primary'],
                                          font=self.fonts['ai_recommendation'], relief='flat', bd=0,
-                                         padx=15, pady=10, wrap=tk.WORD)
+                                         padx=8, pady=6, wrap=tk.WORD)
         self.recommendation_text.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
         
         rec_scrollbar = ttk.Scrollbar(text_frame, orient=tk.VERTICAL, 
@@ -672,7 +698,7 @@ class ChessScannerGUI:
         
         # 分析控制区域
         analysis_control_frame = tk.Frame(analysis_card, bg='white')
-        analysis_control_frame.grid(row=0, column=0, sticky=(tk.W, tk.E), pady=(5, 10))
+        analysis_control_frame.grid(row=0, column=0, sticky=(tk.W, tk.E), pady=(5, 5))
         
         ttk.Button(analysis_control_frame, text="威胁分析", 
                   command=self.show_threats,
@@ -690,10 +716,10 @@ class ChessScannerGUI:
         analysis_frame.columnconfigure(0, weight=1)
         analysis_frame.rowconfigure(0, weight=1)
         
-        self.analysis_text = tk.Text(analysis_frame, height=10, width=40,
+        self.analysis_text = tk.Text(analysis_frame, height=8, width=30,
                                    bg='#fafafa', fg=self.colors['text_primary'],
                                    font=self.fonts['ai_recommendation'], relief='flat', bd=0,
-                                   padx=15, pady=10, wrap=tk.WORD)
+                                   padx=8, pady=6, wrap=tk.WORD)
         self.analysis_text.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
         
         analysis_scrollbar = ttk.Scrollbar(analysis_frame, orient=tk.VERTICAL, 
@@ -705,19 +731,25 @@ class ChessScannerGUI:
         self.update_analysis_display()
     
     def create_status_log_panel(self, parent):
-        """创建底部状态日志面板 - 1920x1080优化版本"""
-        status_card = ttk.LabelFrame(parent, text="📊 系统状态与日志", style='Card.TLabelframe')
-        status_card.pack(fill=tk.BOTH, pady=(10, 0))
+        """创建右侧状态日志面板 - 450x750尺寸"""
+        # 右侧日志面板 - 从底部移到第四列
+        log_panel = tk.Frame(parent, bg=self.colors['bg_primary'], width=450, height=750)
+        log_panel.grid(row=0, column=3, sticky=(tk.W, tk.E, tk.N, tk.S), padx=(0, 0))
+        log_panel.pack_propagate(False)
+        log_panel.grid_propagate(False)
         
-        # 状态文本区域 - 现代终端风格，增加高度
+        status_card = ttk.LabelFrame(log_panel, text="📊 系统状态与日志", style='Card.TLabelframe')
+        status_card.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        
+        # 状态文本区域 - 适应右侧列布局
         status_frame = tk.Frame(status_card, bg='white')
-        status_frame.pack(fill=tk.BOTH, expand=True, padx=15, pady=15)
+        status_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
         
-        # 增加文本区域高度以适应1920x1080
-        self.status_text = tk.Text(status_frame, height=8, width=120,
+        # 调整文本区域尺寸以适应450px宽度
+        self.status_text = tk.Text(status_frame, height=35, width=50,
                                  bg='#f8f9fa', fg=self.colors['text_primary'], 
                                  font=self.fonts['code'], relief='flat', bd=0,
-                                 padx=15, pady=10, wrap=tk.WORD,
+                                 padx=10, pady=8, wrap=tk.WORD,
                                  insertbackground=self.colors['blue_porcelain'])
         self.status_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         
@@ -726,16 +758,16 @@ class ChessScannerGUI:
         status_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         self.status_text.configure(yscrollcommand=status_scrollbar.set)
         
-        # 添加现代化欢迎信息 - 1920x1080优化版本
-        welcome_msg = """🏯 中国象棋智能对弈助手 - Enhanced v3.2 - 1920x1080优化版 🏯
+        # 添加现代化欢迎信息 - 四列布局版本
+        welcome_msg = """🏯 中国象棋智能对弈助手 - Enhanced v3.2 - 四列布局版 🏯
 
-✨ 全新1920x1080界面布局，系统已就绪！
+✨ 全新四列界面布局，系统已就绪！
 
-📋 界面布局优化：
-  • 左侧：棋盘局势 (650x700) - 精确550x550棋盘画布，居中显示
-  • 中央：控制面板 (320x700) - 垂直排列的功能按钮，宽度优化
-  • 右侧：AI分析面板 (可扩展) - 胜率分析、推荐走法、局面分析
-  • 底部：状态日志面板 (8行高) - 完整恢复，实时状态监控
+📋 界面布局（按用户要求定制）：
+  • 第一列：棋盘局势模块 (650x750) - 棋盘画布居中显示
+  • 第二列：控制面板 (300x750) - 垂直排列的功能按钮
+  • 第三列：AI分析面板 (425x750) - 胜率分析、推荐走法、局面分析
+  • 第四列：系统日志模块 (450x750) - 从底部移至右侧列
 
 🎯 快速开始：
   1. 点击"校准棋盘"设置扫描区域
